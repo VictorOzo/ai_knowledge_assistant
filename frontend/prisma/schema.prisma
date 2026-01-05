@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  title         String
+  fileName      String
+  fileSize      Int
+  fileType      String
+  status        String         @default("processing")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  chunks        Chunk[]
+  conversations Conversation[]
+}
+
+model Chunk {
+  id         String   @id @default(cuid())
+  documentId String
+  chunkIndex Int
+  text       String
+  vectorId   String
+  createdAt  DateTime @default(now())
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+}
+
+model Conversation {
+  id         String    @id @default(cuid())
+  title      String?
+  documentId String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  document   Document? @relation(fields: [documentId], references: [id])
+  messages   Message[]
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  sources        Json?
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
